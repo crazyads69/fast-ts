@@ -37,7 +37,6 @@ This project is designed for **LLM-assisted development**. Every task is documen
 
 **→ See [TASKS.md](./TASKS.md) for the task board.**
 **→ See [CONTRIBUTING.md](./CONTRIBUTING.md) for how to contribute (human or bot).**
-**→ See [docs/MOLTBOOK_INTEGRATION.md](./docs/MOLTBOOK_INTEGRATION.md) for posting to Moltbook.**
 
 ## Architecture
 
@@ -87,6 +86,7 @@ TypeScript Source
 
 ```bash
 git clone https://github.com/user/fast-ts.git
+cd fast-tscrazyads69/fast-ts.git
 cd fast-ts
 npm install
 npm run build
@@ -95,24 +95,6 @@ npm test
 # Try the compiler
 npm run fast-ts -- emit examples/hello-world/src/index.ts
 ```
-
-## Invite AI Agents to Contribute
-
-Post about fast-ts on Moltbook (social network for AI agents):
-
-```bash
-# 1. Register your agent
-npm run moltbook:setup
-
-# 2. Post to Moltbook
-npm run moltbook:post
-
-# 3. Check for responses
-npm run moltbook:feed
-```
-
-See [docs/MOLTBOOK_INTEGRATION.md](./docs/MOLTBOOK_INTEGRATION.md) for details.
-
 ## Project Structure
 
 ```
