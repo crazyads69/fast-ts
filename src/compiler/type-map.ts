@@ -3,34 +3,95 @@
  *
  * Maps TypeScript types to Go types.
  * See: docs/TYPE-MAPPING.md for the complete reference table.
- *
- * Implement: Task T003
  */
 
 import type { IRType } from "./types.js";
 
+const PRIMITIVE_MAP: Record<string, IRType> = {
+  string: { kind: "string" },
+  number: { kind: "float64" },
+  boolean: { kind: "bool" },
+  void: { kind: "void" },
+  null: { kind: "interface" },
+  undefined: { kind: "interface" },
+  never: { kind: "void" },
+};
+
+const WINTERTC_MAP: Record<string, IRType> = {
+  Request: { kind: "pointer", elementType: { kind: "named", name: "http.Request" } },
+  Response: { kind: "named", name: "http.ResponseWriter" },
+  Headers: { kind: "named", name: "http.Header" },
+  URL: { kind: "pointer", elementType: { kind: "named", name: "url.URL" } },
+  URLSearchParams: { kind: "named", name: "url.Values" },
+  ReadableStream: { kind: "named", name: "io.Reader" },
+  WritableStream: { kind: "named", name: "io.Writer" },
+  Blob: { kind: "slice", elementType: { kind: "named", name: "byte" } },
+};
+
 /**
  * Map a TypeScript type string to an IR type.
- *
- * @param tsType - TypeScript type as string (e.g. "string", "number", "Array<string>")
- * @returns IRType representing the Go equivalent
- *
- * TODO(T003): Implement full type mapping
  */
 export function mapTSTypeToGo(tsType: string): IRType {
-  const primitives: Record<string, IRType> = {
-    string: { kind: "string" },
-    number: { kind: "float64" },
-    boolean: { kind: "bool" },
-    void: { kind: "void" },
-    null: { kind: "interface" },
-    undefined: { kind: "interface" },
-  };
+  const normalized = tsType.trim();
 
-  if (tsType in primitives) {
-    return primitives[tsType]!;
+  // Primitives
+  if (normalized in PRIMITIVE_MAP) {
+    return PRIMITIVE_MAP[normalized]!;
   }
 
-  // TODO(T003): Handle Array<T>, Map<K,V>, Set<T>, Record<K,V>, T | null, etc.
-  throw new Error(`Unknown type: ${tsType} — see docs/TYPE-MAPPING.md`);
+  // WinterTC types
+  if (normalized in WINTERTC_MAP) {
+    return WINTERTC_MAP[normalized]!;
+  }
+
+  // Array<T> or T[]
+  const arrayGenericMatch = normalized.match(/^Array<(.+)>$/);
+  if (arrayGenericMatch) {
+    return { kind: "slice", elementType: mapTSTypeToGo(arrayGenericMatch[1]!) };
+  }
+  if (normalized.endsWith("[]")) {
+    return { kind: "slice", elementType: mapTSTypeToGo(normalized.slice(0, -2)) };
+  }
+
+  // Map<K, V>
+  const mapMatch = normalized.match(/^Map<(.+),\s*(.+)>$/);
+  if (mapMatch) {
+    return { kind: "map", keyType: mapTSTypeToGo(mapMatch[1]!), valueType: mapTSTypeToGo(mapMatch[2]!) };
+  }
+
+  // Set<T> → map[T]struct{}
+  const setMatch = normalized.match(/^Set<(.+)>$/);
+  if (setMatch) {
+    return { kind: "map", keyType: mapTSTypeToGo(setMatch[1]!), valueType: { kind: "struct", fields: [] } };
+  }
+
+  // Record<K, V> → map[K]V
+  const recordMatch = normalized.match(/^Record<(.+),\s*(.+)>$/);
+  if (recordMatch) {
+    return { kind: "map", keyType: mapTSTypeToGo(recordMatch[1]!), valueType: mapTSTypeToGo(recordMatch[2]!) };
+  }
+
+  // Promise<T> → T (unwrap, error handled separately)
+  const promiseMatch = normalized.match(/^Promise<(.+)>$/);
+  if (promiseMatch) {
+    return mapTSTypeToGo(promiseMatch[1]!);
+  }
+
+  // T | null or T | undefined → *T (pointer)
+  const nullableMatch = normalized.match(/^(.+)\s*\|\s*(?:null|undefined)$/);
+  if (nullableMatch) {
+    return { kind: "pointer", elementType: mapTSTypeToGo(nullableMatch[1]!) };
+  }
+  const nullableMatchReverse = normalized.match(/^(?:null|undefined)\s*\|\s*(.+)$/);
+  if (nullableMatchReverse) {
+    return { kind: "pointer", elementType: mapTSTypeToGo(nullableMatchReverse[1]!) };
+  }
+
+  // Named/user-defined type
+  if (/^[A-Z][a-zA-Z0-9]*$/.test(normalized)) {
+    return { kind: "named", name: normalized };
+  }
+
+  // Fallback: try as named type
+  return { kind: "named", name: normalized };
 }

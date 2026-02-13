@@ -106,7 +106,10 @@ export type IRStatement =
   | IRForStmt
   | IRForRangeStmt
   | IRSwitchStmt
-  | IRBlockStmt;
+  | IRBlockStmt
+  | IRPostfixStmt
+  | IRErrorCheckStmt
+  | IRDeferStmt;
 
 export interface IRExpressionStmt {
   kind: "expression";
@@ -165,6 +168,24 @@ export interface IRSwitchStmt {
 export interface IRBlockStmt {
   kind: "block";
   body: IRStatement[];
+}
+
+export interface IRPostfixStmt {
+  kind: "postfix";
+  operand: IRExpression;
+  operator: "++" | "--";
+}
+
+export interface IRErrorCheckStmt {
+  kind: "error-check";
+  call: IRExpression;
+  resultNames: string[];
+  errorBody: IRStatement[];
+}
+
+export interface IRDeferStmt {
+  kind: "defer";
+  expression: IRExpression;
 }
 
 // === Expressions ===
