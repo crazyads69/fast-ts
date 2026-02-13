@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.fast-ts/
+*.js
+*.d.ts
+*.js.map
+!vitest.config.ts

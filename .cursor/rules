@@ -1,0 +1,74 @@
+# fast-ts — Cursor Rules
+
+## Project Context
+fast-ts is a TypeScript-to-Go compiler targeting WinterTC (ECMA-429) server APIs.
+Compiler pipeline: Parse (TS Compiler API) → Validate → Transform (TS AST → IR) → Emit (IR → Go) → Build (go build).
+
+## Architecture
+- Parser (`src/compiler/parser.ts`): Uses TypeScript Compiler API to parse TS source into IR
+- Validator (`src/compiler/validator.ts`): Checks for unsupported TS features
+- Emitter (`src/compiler/emitter.ts`): Converts IR to idiomatic Go source code
+- IR Types (`src/compiler/types.ts`): Intermediate representation — the contract between parser and emitter
+- CLI (`src/cli/index.ts`): Command-line interface
+
+## Key Rules
+
+### TypeScript Code (compiler itself)
+- Use `strict: true` TypeScript — no `any` types
+- Use discriminated unions for IR nodes (each has a `kind` field)
+- Use the TypeScript Compiler API directly (`import * as ts from "typescript"`)
+- Prefer `ts.is*` type guards for AST node checking
+- Do not add external dependencies without discussion
+
+### Generated Go Code
+- Must be `gofmt`-compatible
+- Use only Go stdlib — no external packages
+- All struct fields must be exported (capitalized first letter)
+- Include `json:"fieldName"` tags on struct fields
+- Use `interface{}` sparingly — prefer concrete types
+- Map `===` to `==`, `!==` to `!=`
+- Map template literals to `fmt.Sprintf`
+- Map `console.log` to `log.Println`
+
+### Testing
+- Every feature needs a snapshot test in `tests/fixtures/{name}/`
+- Each fixture has `input.ts` (source) and `expected.go` (expected output)
+- Run tests with `npm test`
+
+### WinterTC Entry Point Pattern
+The standard entry point is:
+```typescript
+export default {
+  fetch(request: Request): Response {
+    return new Response("body");
+  }
+};
+```
+This maps to:
+```go
+func handler(w http.ResponseWriter, r *http.Request) {
+    w.Write([]byte("body"))
+}
+func main() {
+    http.HandleFunc("/", handler)
+    log.Fatal(http.ListenAndServe(":8080", nil))
+}
+```
+
+### Task Workflow
+- Read TASKS.md for available work
+- Each task has: dependencies, files, input/output spec, test criteria
+- Use PR title format: `T{number}: {description}`
+
+## Type Mapping Quick Reference
+| TypeScript | Go |
+|---|---|
+| string | string |
+| number | float64 |
+| boolean | bool |
+| null/undefined | nil |
+| Array<T> | []T |
+| Map<K,V> | map[K]V |
+| interface{} | struct |
+| Promise<T> | (T, error) |
+| T \| null | *T |

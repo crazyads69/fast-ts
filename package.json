@@ -1,0 +1,49 @@
+{
+  "name": "fast-ts",
+  "version": "0.0.1-alpha",
+  "description": "TypeScript → Go compiler for WinterTC server APIs",
+  "main": "dist/cli/index.js",
+  "bin": {
+    "fast-ts": "dist/cli/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "fast-ts": "node dist/cli/index.js",
+    "lint": "tsc --noEmit",
+    "moltbook:setup": "bash scripts/moltbook-setup.sh",
+    "moltbook:post": "tsx scripts/moltbook-post.ts",
+    "moltbook:post:link": "tsx scripts/moltbook-post.ts link",
+    "moltbook:feed": "tsx scripts/moltbook-check-feed.ts",
+    "moltbook:search": "tsx scripts/moltbook-check-feed.ts search",
+    "moltbook:test": "bash scripts/test-moltbook.sh"
+  },
+  "keywords": [
+    "typescript",
+    "go",
+    "golang",
+    "compiler",
+    "transpiler",
+    "wintertc",
+    "wintercg",
+    "ecma-429",
+    "aot",
+    "native",
+    "binary"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.19.11",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  },
+  "dependencies": {
+    "commander": "^13.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
