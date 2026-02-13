@@ -3,15 +3,24 @@
   "version": "0.0.1-alpha",
   "description": "TypeScript → Go compiler for WinterTC server APIs",
   "main": "dist/cli/index.js",
+  "types": "dist/compiler/types.d.ts",
   "bin": {
     "fast-ts": "dist/cli/index.js"
   },
+  "files": [
+    "dist/",
+    "src/runtime/",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",
-    "fast-ts": "node dist/cli/index.js",
-    "lint": "tsc --noEmit"
+    "test:integration": "vitest run tests/integration.test.ts",
+    "fast-ts": "npx tsx src/cli/index.ts",
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "npm run lint && npm run build && npm test"
   },
   "keywords": [
     "typescript",

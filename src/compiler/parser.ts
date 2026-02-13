@@ -752,6 +752,11 @@ function parseExpression(node: ts.Node, sf: ts.SourceFile, imports: Set<string>)
     };
   }
 
+  // Await expression — strip await (Go is synchronous)
+  if (ts.isAwaitExpression(node)) {
+    return parseExpression(node.expression, sf, imports);
+  }
+
   // Parenthesized expression — unwrap
   if (ts.isParenthesizedExpression(node)) {
     return parseExpression(node.expression, sf, imports);
@@ -903,7 +908,14 @@ function parseFunctionDecl(node: ts.FunctionDeclaration, sf: ts.SourceFile, impo
     name: p.name.getText(sf),
     type: p.type ? resolveTypeNode(p.type, sf) : { kind: "interface" as const },
   }));
-  const returns: IRType[] = node.type ? [resolveTypeNode(node.type, sf)] : [];
+  let returns: IRType[] = node.type ? [resolveTypeNode(node.type, sf)] : [];
+  // Filter out void returns
+  returns = returns.filter((t) => t.kind !== "void");
+  // Async functions: add error as second return value (T052)
+  const isAsync = node.modifiers?.some((m) => m.kind === ts.SyntaxKind.AsyncKeyword) ?? false;
+  if (isAsync && returns.length > 0 && !returns.some((t) => t.kind === "error")) {
+    returns.push({ kind: "error" });
+  }
   const body = node.body ? parseBlock(node.body, sf, imports) : [];
   return { kind: "function", name, params, returns, body };
 }

@@ -281,10 +281,13 @@
 - **Note**: `IRErrorCheckStmt` added. try body inlined, catch → `if err != nil { ... }`
 
 ### T051: async/await → sequential (Phase 1 simple)
-- **Status**: `[ ]`
+- **Status**: `[x]`
+- **Note**: `await` expressions unwrapped (Go is synchronous). `async` keyword stripped from function declarations.
 
 ### T052: Promise<T> return type → (T, error)
-- **Status**: `[ ]`
+- **Status**: `[x]`
+- **Note**: `Promise<T>` unwrapped via type-map. Async functions automatically get `error` as second return value.
+- **Test**: `tests/fixtures/async-await/`
 
 ---
 
@@ -323,18 +326,51 @@
 
 ## Phase 7: Go Runtime Library
 
-### T070: `runtime/http` package — WinterTC handler adapter
+### T070: `runtime/handler` package — WinterTC handler adapter
+- **Status**: `[x]`
+- **Files**: `src/runtime/handler/handler.go`
+- **Note**: Serve with graceful shutdown, JSON/Text/Status/Redirect helpers
+
 ### T071: `runtime/console` package
+- **Status**: `[x]`
+- **Files**: `src/runtime/console/console.go`
+- **Note**: Log, Error, Warn, Info, Debug, Assert, Table, Dir, Group/GroupEnd
+
 ### T072: `runtime/encoding` package — TextEncoder/TextDecoder
-### T073: `runtime/url` package — URLSearchParams helper
+- **Status**: `[x]`
+- **Files**: `src/runtime/encoding/encoding.go`
+- **Note**: TextEncode (string→[]byte), TextDecode ([]byte→string), stateful TextEncoder/TextDecoder types
+
+### T073: `runtime/urlparams` package — URLSearchParams helper
+- **Status**: `[x]`
+- **Files**: `src/runtime/urlparams/urlparams.go`
+- **Note**: Full URLSearchParams API: Get, GetAll, Set, Append, Has, Delete, String, Entries, Keys, Values, ForEach, Sort, Size
 
 ---
 
 ## Phase 8: Polish & Release
 
 ### T080: Integration test — full .ts → binary → HTTP test
+- **Status**: `[x]`
+- **Files**: `tests/integration.test.ts`
+- **Note**: Compiles hello-world + variables fixtures → Go → binary → HTTP server → verifies response. Skips if Go not installed.
+
 ### T081: Benchmark suite — fast-ts vs Node.js+Hono
+- **Status**: `[ ]` (deferred — needs real-world app samples)
+
 ### T082: Error message quality audit
-### T083: README + docs site
+- **Status**: `[x]`
+- **Note**: All FTS001-FTS011 codes have clear message + actionable suggestion + file/line/column
+
+### T083: README + docs
+- **Status**: `[x]`
+- **Note**: README updated with feature tables, quick start, project structure, validator error codes
+
 ### T084: npm publish setup
+- **Status**: `[x]`
+- **Note**: package.json: files, types, prepublishOnly, test:integration
+
 ### T085: GitHub Actions CI
+- **Status**: `[x]`
+- **Files**: `.github/workflows/ci.yml`
+- **Note**: Node 20/22 matrix for unit tests + Go 1.22 for integration tests
